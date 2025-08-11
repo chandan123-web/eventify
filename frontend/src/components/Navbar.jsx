@@ -6,15 +6,21 @@ import ThemeSelector from "./ThemeSelector.jsx";
 import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { logout } from "../lib/api.js";
+import { useNavigate } from "react-router-dom";
+// const navigate = useNavigate();
+
 
 const Navbar = () => {
   const { authUser } = useAuthUser();
-  
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const { mutate: logoutMutation } = useMutation({
     mutationFn: logout,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["authUser"] })
+      navigate("/login");
+       }   ,
   });
 
 //  const { logoutMutation } = useLogout();
@@ -62,9 +68,12 @@ const Navbar = () => {
           </div>
 
           {/* Logout button */}
-          <button className="btn btn-ghost btn-circle" onClick={logoutMutation}>
+         
+            <Link to="/events">
+             <button className="btn btn-ghost btn-circle" onClick={logoutMutation}>
             <LogOutIcon className="h-6 w-6 text-base-content opacity-70" />
           </button>
+            </Link>
         </div>
       </div>
     </nav>

@@ -41,4 +41,4 @@ const eventschema=new Schema({
 )
 
 const Event =mongoose.model("Event",eventschema)
-export {Event};
+export default Event;

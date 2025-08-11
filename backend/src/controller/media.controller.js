@@ -1,175 +1,151 @@
+import Media from "../models/Media.model.js";
+import Event from "../models/event.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import { Media } from "../models/media.model.js";
-import path from "path";
-import { User } from "../models/user.model.js";
+import fs from "fs";
 
-const uploadMedia = async (req, res) => {
-     const file = req.file;
+// ✅ Get all media for an event
+export const getMediaByEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
 
-    if (!file) {
-      return res.status(400).json({ message: "No file uploaded." });
+    // check if event exists
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found." });
     }
-   const localFilePath = file.path;
-   // localFilePath = localFilePath.replace(/\\/g, "/");
-  console.log("Fixed local file path →", localFilePath);
 
-    try {
-        
-        const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
-        if (!cloudinaryResponse) {
-          console.log("cloudinaryResponse →", cloudinaryResponse);
-            return res.status(500).json({ message: "Failed to upload file to Cloudinary." });
+    const mediaFiles = await Media.find({ eventId }).sort({ uploadDate: -1 });
+
+    res.json({ success: true, data: mediaFiles });
+  } catch (error) {
+    console.error("Error fetching media:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+// ✅ Upload media for an event
+export const uploadMedia = async (req, res) => {
+  try {
+    const files = req.files;
+    const eventId =  req.params.eventId; // allow both body & params
+    const tags = req.body.tags;
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ success: false, message: "No files uploaded." });
+    }
+
+    // Check if event exists
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found." });
+    }
+
+    const uploadedMedia = await Promise.all(
+      files.map(async (file) => {
+        const localFilePath = file.path;
+
+        try {
+          const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
+
+          if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath); // remove temp file
+          }
+
+          if (!cloudinaryResponse || !cloudinaryResponse.secure_url) {
+            throw new Error("Cloudinary upload failed");
+          }
+
+          return await Media.create({
+            eventId,
+            uploaderId: req.user._id,
+            file: cloudinaryResponse.secure_url,
+            tags: tags?.split(",").map((t) => t.trim()) || [],
+            uploadDate: new Date(),
+            isApproved: false,
+          });
+        } catch (err) {
+          console.error(`Error processing file ${file.originalname}:`, err);
+          return null; // skip failed file
         }
+      })
+    );
 
-        const newMedia = await Media.create({
-          eventId: req.body.eventId,
-          uploaderId: req.user.id,
-          file: cloudinaryResponse.secure_url,
-          tags: req.body.tags?.split(",") || [],
-          uploadDate: new Date(),
-          isApproved: false,
-        });
-   
-        res.status(201).json({
-            message: "Media uploaded successfully.",
-            data: newMedia,
-        });
-}
+    const successfulUploads = uploadedMedia.filter(Boolean);
 
-    catch (error) {
-        console.error("Error uploading media:", error);
-        return res.status(500).json({ message: "Internal server error." });
-    }
+    res.status(201).json({
+      success: true,
+      message: `${successfulUploads.length} of ${files.length} files uploaded successfully.`,
+      data: successfulUploads,
+    });
+  } catch (error) {
+    console.error("Error uploading media:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
 };
 
-const approveMedia = async (req, res) => {
+// export const uploadMedia = async (req, res) => {
+//   try {
+//     const { eventId, tags } = req.body;
+
+//     // 1. Check if eventId is provided
+//     if (!eventId) {
+//       return res.status(400).json({ message: "Event ID is required" });
+//     }
+
+//     // 2. Check if event exists
+//     const event = await Event.findById(eventId);
+//     if (!event) {
+//       return res.status(404).json({ message: "Event not found" });
+//     }
+
+//     // 3. Check if files were uploaded
+//     if (!req.files || req.files.length === 0) {
+//       return res.status(400).json({ message: "No files uploaded" });
+//     }
+
+//     // 4. Save media to DB
+//     const mediaDocs = req.files.map((file) => ({
+//       event: eventId,
+//       fileName: file.originalname,
+//       filePath: file.path,
+//       fileType: file.mimetype,
+//       tags: tags ? tags.split(",") : []
+//     }));
+
+//     const savedMedia = await Media.insertMany(mediaDocs);
+
+//     // 5. Send success response
+//     return res.status(201).json({
+//       message: "Media uploaded successfully",
+//       media: savedMedia
+//     });
+
+//   } catch (error) {
+//     console.error("Upload media error:", error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+// ✅ Delete media
+export const deleteMedia = async (req, res) => {
   try {
-    const mediaId = req.params.id;
+    const { mediaId } = req.params;
 
     const media = await Media.findById(mediaId);
     if (!media) {
       return res.status(404).json({ message: "Media not found." });
     }
 
-    media.isApproved = true;
-    await media.save();
-
-    res.json({ message: "Media approved successfully.", data: media });
-  } catch (error) {
-    console.error("Error approving media:", error);
-    return res.status(500).json({ message: "Internal server error." });
-  }
-};
-
-const updateMedia = async (req, res) => {
-  try {
-    const mediaId = req.params.id;
-
-    let media = await Media.findById(mediaId);
-    if (!media) {
-      return res.status(404).json({ message: "Media not found." });
+    // Allow deletion only by uploader or admin
+    if (media.uploaderId.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Not authorized to delete this file." });
     }
 
-    // Check permissions:
-    // Only uploader or admin can update
-    if (
-      media.uploaderId.toString() !== req.user.id &&
-      req.user.role !== "admin"
-    ) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to update this media." });
-    }
+    await Media.findByIdAndDelete(mediaId);
 
-    // Update allowed fields
-
-    media.tags = req.body.tags
-      ? req.body.tags.split(",").map((tag) => tag.trim())
-      : media.tags;
-    
-
-    await media.save();
-
-    res.json({
-      message: "Media updated successfully.",
-      data: media,
-    });
-  } catch (error) {
-    console.error("Error updating media:", error);
-    return res.status(500).json({ message: "Internal server error." });
-  }
-};
-
-const deleteMedia = async (req, res) => {
-  try {
-    const mediaId = req.params.id;
-
-    const media = await Media.findById(mediaId);
-    if (!media) {
-      return res.status(404).json({ message: "Media not found." });
-    }
-
-    // Check permissions:
-    if (
-      media.uploaderId.toString() !== req.user.id &&
-      req.user.role !== "admin"
-    ) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to delete this media." });
-    }
-
-    // Delete from Cloudinary
-    if (media.cloudinaryPublicId) {
-      await cloudinary.uploader.destroy(media.cloudinaryPublicId, {
-        resource_type: "auto",
-      });
-    }
-
-   
-
-     //soft delete:
-     media.isDeleted = true;
-     await media.save();
-
-    res.json({
-      message: "Media deleted successfully.",
-    });
+    res.json({ success: true, message: "Media deleted successfully." });
   } catch (error) {
     console.error("Error deleting media:", error);
-    return res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: "Internal server error." });
   }
 };
-const getallmedia = async (req, res) => {
-  
-  const {page = 1, limit = 10,query ,sortBy = "uploadDate", sortOrder = "desc",sortType = "date",eventId}= req.query;
-
-    
-}
-const myMedia = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const media = await Media.find({ uploaderId: userId })
-      .populate("eventId", "name")
-      .sort({ uploadDate: -1 });
-
-    res.json({
-      message: "User media fetched successfully.",
-      data: media,
-    });
-  } catch (error) {
-    console.error("Error fetching user media:", error);
-    return res.status(500).json({ message: "Internal server error." });
-  }
-
-}
-    
-
-
-export {
-  uploadMedia,
-  approveMedia,
-  updateMedia,
-  deleteMedia,
-};
-

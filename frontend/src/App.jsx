@@ -14,6 +14,7 @@ import Layout from "./components/Layout.jsx";
 import Navbar from "./components/Navbar.jsx";
 import CreateEventPage from "./pages/EventPage.jsx";
 import PageLoader from "./pages/PageLoader.jsx";
+import EventGallery from "./pages/EventGallery.jsx";
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
   const { theme } = useThemeStore();
@@ -86,6 +87,12 @@ const App = () => {
             )
           }
         />
+        <Route
+          path="/events/:eventId/media"
+          element={
+         <EventGallery />
+
+          }/>
 
     
       </Routes>

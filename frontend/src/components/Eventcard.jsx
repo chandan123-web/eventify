@@ -1,52 +1,61 @@
-/* eslint-disable react/prop-types */
-
-
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import myimage from "../assets/chn.svg"; 
 export default function EventCard({ event }) {
+  const navigate = useNavigate();
+
+   const handleClick = () => {
+    // Navigate to the media page for this event
+    navigate(`/events/${event._id}/media`);
+  };
+
   return (
-    // <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow w-96 mx-auto">
-    //   {/* Image */}
-    //   <div>
-    //     <img
-    //       src={event.image || "https://via.placeholder.com/384x200"} // fallback image
-    //       alt={event.name}
-    //       className="w-full h-48 object-cover rounded-t-lg"
-    //     />
-    //   </div>
-
-    //   {/* Card Body */}
-    //   <div className="p-4">
-    //     <h2 className="text-lg font-semibold text-gray-800">{event.name}</h2>
-    //     <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-
-    //     {/* Event Details */}
-    //     <div className="text-sm text-gray-500 space-y-1 mt-3">
-    //       <p>
-    //         <span className="font-semibold">Created By:</span>{" "}
-    //         {event.ownerName || "Unknown"}
-    //       </p>
-    //       <p>
-    //         <span className="font-semibold">Published On:</span>{" "}
-    //         {new Date(event.createdAt).toLocaleDateString()}
-    //       </p>
-    //     </div>
-    //   </div>
-    // </div>
     <div className="card bg-base-100 w-96 shadow-sm">
-  <figure>
-    <img
-      src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-      alt="Shoes" />
-  </figure>
-  <div className="card-body">
-    <h2 className="card-title">Card Title</h2>
-    <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
-    <div className="card-actions justify-end">
-      <button className="btn btn-primary">Buy Now</button>
+      {/* Image */}
+      <figure>
+        <img
+          src={
+            // myimage
+            "https://images.pexels.com/photos/33322570/pexels-photo-33322570.jpeg" 
+            // // fallback image
+          }
+          alt={event.name}
+          className="h-48 w-full object-cover"
+        />
+      </figure>
+
+      {/* Body */}
+      <div className="card-body">
+        <h2 className="card-title">{event.name}</h2>
+        <p className="text-sm text-gray-600">{event.description}</p>
+
+        {/* Extra info */}
+        <div className="text-sm text-gray-500 mt-3 space-y-1">
+          <p>
+            <span className="font-semibold">Created By:</span>{" "}
+            {event.ownerId?.name || "Unknown"}
+          </p>
+          <p>
+            <span className="font-semibold">Published On:</span>{" "}
+            {event.createdAt
+              ? new Date(event.createdAt).toLocaleDateString()
+              : "N/A"}
+          </p>
+        </div>
+
+        {/* Action */}
+        <div className="card-actions justify-end mt-4">
+          <button onClick={handleClick} className="btn btn-primary">
+            View Details
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
   );
 }
+
+
+
 
 
 

@@ -14,15 +14,17 @@ import {
 
 
 const router = Router();
-router.use(verifyJWT);
+// router.get("/ getAllEvents", getAllEvents);
+router.get("/getAllEvents",verifyJWT, getAllEvents);
+// router.use(verifyJWT);
 
 
 
-router.post("/", createEvent);
-router.get("/:id", getEvent);
-router.patch("/:id", updateEvent);
-router.delete("/:id", deleteEvent);
-router.get("/", getAllEvents);
+router.post("/createEvent",verifyJWT, createEvent);
+router.get("/:id",verifyJWT, getEvent);
+router.patch("/:id", verifyJWT,updateEvent);
+router.delete("/:id",verifyJWT, deleteEvent);
+// router.get("/getAllEvents", getAllEvents);
 router.delete("/remove-invitee/:eventId/:userId", removeInviteeFromEvent);
 
 export default router ;

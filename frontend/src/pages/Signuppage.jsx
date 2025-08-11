@@ -3,8 +3,10 @@ import { ShipWheelIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { signup } from "../lib/api.js";
+import{ useNavigate } from "react-router-dom";
 
 const SignUpPage = () => {
+   const navigate = useNavigate();
   const [signupData, setSignupData] = useState({
     name: "",
     email: "",
@@ -19,7 +21,9 @@ const SignUpPage = () => {
     error,
   } = useMutation({
     mutationFn: signup,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+    onSuccess: () => {queryClient.invalidateQueries({ queryKey: ["authUser"] })
+      navigate("/");
+    },
   });
 
   // This is how we did it using our custom hook - optimized version

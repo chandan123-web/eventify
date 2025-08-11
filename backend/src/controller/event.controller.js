@@ -1,26 +1,38 @@
-import {Event} from "../models/event.model.js";
+import Event from "../models/event.model.js";
 import mongoose from "mongoose";
+import {User} from "../models/user.model.js";
 
  const createEvent = async (req, res) => {
   try {
-    const newEvent = await Event.create({
-      name: req.body.name,
-      description: req.body.description,
-      ownerId: req.user.id,
-      isPublic: req.body.isPublic || false,
-      date: req.body.date,
-      invitedUsers: req.body.invitedUsers || [],
-      
+    const { name, description, date, isPublic, invitedUsers } = req.body;
+
+    // Convert emails to ObjectIds
+    let invitedUserIds = [];
+    if (Array.isArray(invitedUsers) && invitedUsers.length > 0) {
+      const foundUsers = await User.find({
+        email: { $in: invitedUsers }
+      }).select("_id");
+      invitedUserIds = foundUsers.map(user => user._id);
+    }
+
+    const event = await Event.create({
+      name,
+      description,
+      date,
+      ownerId: req.user.id, // from verifyJWT middleware
+      isPublic,
+      invitedUsers: invitedUserIds
     });
 
     res.status(201).json({
-      message: "Event created successfully.",
-      data: newEvent,
+      message: "Event created successfully",
+      data: event
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
+
 
 
 
@@ -87,9 +99,17 @@ const updateEvent = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }};
 
+  
+
+ 
+
+
+
+
 const getAllEvents = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id; // ✅ same type as in DB
+    console.log("User ID:", userId);
 
     const queryObj = {
       $or: [
@@ -107,8 +127,10 @@ const getAllEvents = async (req, res) => {
       queryObj.date = req.query.date;
     }
 
-    // --- Query the DB ---
-    let query = Event.find(queryObj);
+    // --- Query the DB (use queryObj!) ---
+    let query = Event.find(queryObj)
+      .populate("ownerId", "name email")
+      .lean();
 
     // --- Sorting ---
     if (req.query.sort) {
@@ -137,6 +159,21 @@ const getAllEvents = async (req, res) => {
   }
 };
 
+// const getAllEvents = async (req, res) => {
+// //  const userId = req.user.id; 
+//   const ans= await Event.find();
+//   try {
+    
+//     res.json(ans);
+//   } catch (error) {
+//     console.error("Error fetching events:", error);
+//     res.status(500).json({ message: "Server error", error: error.message });
+//   }
+
+// }
+
+
+    
 
 const removeInviteeFromEvent = async (req, res) => {
   try {

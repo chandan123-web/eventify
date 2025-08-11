@@ -319,11 +319,21 @@ const changeCurrentPassword = async(req, res) => {
         message: "Password changed successfully"
     })
 }
+ const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, "email name"); // fetch only email & name
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 export{
     registerUser,
     loginUser,
     logoutUser,
     updateUserCoverImage,
-    changeCurrentPassword
+    changeCurrentPassword,
+   getAllUsers
 }
