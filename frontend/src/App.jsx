@@ -5,6 +5,8 @@ import { Toaster } from "react-hot-toast";
 import SignUpPage from "./pages/Signuppage.jsx";
 import LoginPage from "./pages/Loginpage.jsx";
 import HomePage from "./pages/Homepage.jsx";
+import EventRoom from "./pages/EventRoom.jsx";
+import ChatPage from "./pages/ChatPage.jsx";
 
 
 
@@ -93,6 +95,14 @@ const App = () => {
          <EventGallery />
 
           }/>
+        <Route
+          path="/events/:eventId/chat"
+          element={
+            <ChatPage />
+          }/>
+            
+                
+
 
     
       </Routes>

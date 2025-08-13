@@ -104,3 +104,21 @@ export const uploadMedia = async (eventId, files, tags) => {
 
   return res.data; // { success, message, data }
 };
+
+export const getStreamToken = async () => {
+  const res = await axiosInstance.get("/messages/token", { withCredentials: true });
+
+  console.log("🔹 Server /messages/token response:", res.data);
+
+  if (!res.data?.token) {
+    throw new Error("No token in response from server");
+  }
+
+  return res.data; // { token, userId, name }
+};
+
+export const createOrJoinChannel = async (eventId) => {
+   console.log("jdsnvgjv");
+  const res = await axiosInstance.post(`/messages/${eventId}/channel`, {}, { withCredentials: true });
+  return res.data; // { success, members }
+}

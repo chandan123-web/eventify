@@ -8,6 +8,10 @@ export default function EventCard({ event }) {
     // Navigate to the media page for this event
     navigate(`/events/${event._id}/media`);
   };
+  const handleClickchat = () => {
+    // Navigate to the chat page for this event
+     navigate(`/events/${event._id}/chat`);
+  };
 
   return (
     <div className="card bg-base-100 w-96 shadow-sm">
@@ -46,7 +50,13 @@ export default function EventCard({ event }) {
         {/* Action */}
         <div className="card-actions justify-end mt-4">
           <button onClick={handleClick} className="btn btn-primary">
-            View Details
+            media
+          </button>
+        </div>
+
+          <div className="card-actions justify-start mt-4">
+          <button onClick={handleClickchat} className="btn btn-primary">
+            chat
           </button>
         </div>
       </div>
