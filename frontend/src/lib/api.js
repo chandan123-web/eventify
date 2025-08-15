@@ -158,3 +158,66 @@ export const createOrJoinChannel = async (eventId) => {
   const res = await axiosInstance.post(`/messages/${eventId}/channel`, {}, { withCredentials: true });
   return res.data; // { success, members }
 }
+
+// src/lib/api.js
+
+
+// Get all unique friend IDs
+export const getFriendIds = async () => {
+  console.log("📡 Fetching unique friend IDs...");
+  try {
+    const res = await axiosInstance.get("/friends/unique");
+    console.log("✅ Friend IDs fetched:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch friend IDs:", err);
+    throw err;
+  }
+};
+
+
+export const createPost = async (data) => {
+  const res = await axiosInstance.post("/posts", data, {
+    headers: { "Content-Type": "multipart/form-data" } // For file uploads
+  });
+  return res.data;
+};
+
+// ✅ Get my own posts
+export const getMyPosts = async () => {
+  const res = await axiosInstance.get("/posts/my");
+  return res.data.posts;
+};
+
+// ✅ Get profile + posts of a specific user
+export const getUserProfileWithPosts = async (id) => {
+  const res = await axiosInstance.get(`/posts/user/${id}`);
+  return res.data;
+};
+
+// ✅ Get all friend IDs
+
+
+// ✅ Get recent posts from multiple users
+// frontend/api.js
+export const getRecentPostsOfFriends = async (friendIds) => {
+  console.log("📡 Fetching recent posts for friends:", friendIds);
+  try {
+    const res = await axiosInstance.post(
+      "/posts/friends",
+      { friendIds },
+      {
+        headers: {
+          "Content-Type": "application/json", // ✅ Force JSON body
+        },
+      }
+    );
+
+    console.log("✅ Posts fetched:", res.data);
+    return res.data.posts;
+  } catch (err) {
+    console.error("❌ Failed to fetch posts:", err.response?.data || err.message);
+    throw err;
+  }
+};
+

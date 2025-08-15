@@ -8,8 +8,8 @@ import { useMediaQuery } from "react-responsive";
 const navLinks = [
   { name: "Home", icon: <Home size={18} />, href: "/" },
   { name: "Events", icon: <Calendar size={18} />, href: "/events" },
-  { name: "Users", icon: <Users size={18} />, href: "/users" },
-  { name: "Media", icon: <Image size={18} />, href: "/media" },
+  { name: "Users", icon: <Users size={18} />, href: "/feed" },
+  { name: "Media", icon: <Image size={18} />, href: "/create-post" },
 ];
 
 export default function Sidebar({ isOpen, closeSidebar }) {

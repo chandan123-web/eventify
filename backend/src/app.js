@@ -83,6 +83,9 @@ import messageRoutes from "./routes/message.route.js";
 import userRouter from "./routes/user.route.js";
 import eventRouter from "./routes/event.route.js";
 import mediaRouter from "./routes/media.router.js";
+import friendRouter from "./routes/friend.route.js";
+
+import postRoter from "./routes/post.route.js";
 
 dotenv.config();
 
@@ -100,6 +103,8 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/events", eventRouter);
 app.use("/api/v1/media", mediaRouter);
 app.use("/api/v1/messages", messageRoutes);
+app.use("/api/v1/friends", friendRouter);
+app.use("/api/v1/posts", postRoter);
 
 export default app;
 

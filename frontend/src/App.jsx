@@ -1,5 +1,5 @@
 import useAuthUser from "./hooks/Authuser.js";
-import { useThemeStore } from "./store/useThemeSelector.js";
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import SignUpPage from "./pages/Signuppage.jsx";
@@ -11,15 +11,20 @@ import CallPage from "./pages/CallPage.jsx";
 
 
 import Sidebar from "./components/Sidebar.jsx";
-import ThemeSelector from "./components/ThemeSelector.jsx";
+
 import Layout from "./components/Layout.jsx";
 import Navbar from "./components/Navbar.jsx";
 import CreateEventPage from "./pages/EventPage.jsx";
 import PageLoader from "./pages/PageLoader.jsx";
 import EventGallery from "./pages/EventGallery.jsx";
+
+
+import FriendsFeed from "./pages/FriendsFeedpage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import CreatePostPage from "./pages/CreatePost.jsx";
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
-  const { theme } = useThemeStore();
+  
 
   const isAuthenticated = Boolean(authUser);
   //const isOnboarded = authUser?.isOnboarded;
@@ -27,7 +32,7 @@ const App = () => {
  if (isLoading) return <PageLoader />;
 
   return (
-    <div className="h-screen" data-theme={theme}>
+    <div className="h-screen" >
       <Routes>
         <Route
           path="/"
@@ -89,6 +94,13 @@ const App = () => {
             )
           }
         />
+
+
+        <Route path="/feed" element={<FriendsFeed />} />
+        <Route path="/profile/:id" element={<ProfilePage />} /> 
+        <Route path="/create-post" element={<CreatePostPage />} />
+
+
         <Route
           path="/events/:eventId/media"
           element={
