@@ -27,51 +27,87 @@ export const getAuthUser = async () => {
 // src/api/event.api.js
 
 
-// 1️⃣ Create Event
+// 📌 Event API Functions
+
+
+/** 1️⃣ Create Event */
 export const createEvent = async (eventData) => {
-  const res = await axiosInstance.post("/events/createEvent", eventData);
-  return res.data;
-};
-
-
-// 2️⃣ Get Single Event
-export const getEvent = async (eventId) => {
-  const res = await api.get(`/events/${eventId}`);
-  return res.data;
-};
-
-// 3️⃣ Update Event
-export const updateEvent = async (eventId, updateData) => {
-  const res = await api.put(`/events/${eventId}`, updateData);
-  return res.data;
-};
-
-// 4️⃣ Delete Event
-export const deleteEvent = async (eventId) => {
-  const res = await api.delete(`/events/${eventId}`);
-  return res.data;
-};
-
-// 5️⃣ Get All Events (with filters, sorting, pagination)
-export const getAllEvents = async () => {
-  console.log("📡 Calling /events/getAllEvents...");
+  console.log("📡 Creating event...");
   try {
-    const res = await axiosInstance.get("/events/getAllEvents");
-    console.log("✅ Response from API:", res.data);
+    const res = await axiosInstance.post("/events/createEvent", eventData);
+    console.log("✅ Event created:", res.data);
     return res.data;
   } catch (err) {
-    console.error("❌ API call failed:", err);
+    console.error("❌ Create event failed:", err);
     throw err;
   }
 };
 
-
-
-// 6️⃣ Remove Invitee from Event
-export const removeInviteeFromEvent = async (eventId, userId) => {
-  const res = await api.delete(`/events/${eventId}/invitees/${userId}`);
-  return res.data;
+/** 2️⃣ Get Single Event */
+export const getEvent = async (eventId) => {
+  console.log(`📡 Fetching event ${eventId}...`);
+  try {
+    const res = await axiosInstance.get(`/events/${eventId}`);
+    console.log("✅ Event fetched:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Get event failed:", err);
+    throw err;
+  }
 };
+
+/** 3️⃣ Update Event */
+export const updateEvent = async (eventId, updateData) => {
+  console.log(`📡 Updating event ${eventId}...`);
+  try {
+    const res = await axiosInstance.put(`/events/${eventId}`, updateData);
+    console.log("✅ Event updated:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Update event failed:", err);
+    throw err;
+  }
+};
+
+/** 4️⃣ Delete Event */
+export const deleteEvent = async (eventId) => {
+  console.log(`📡 Deleting event ${eventId}...`);
+  try {
+    const res = await axiosInstance.delete(`/events/${eventId}`);
+    console.log("✅ Event deleted:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Delete event failed:", err);
+    throw err;
+  }
+};
+
+/** 5️⃣ Get All Events */
+export const getAllEvents = async () => {
+  console.log("📡 Fetching all events...");
+  try {
+    const res = await axiosInstance.get("/events/getAllEvents");
+    console.log("✅ All events fetched:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Get all events failed:", err);
+    throw err;
+  }
+};
+
+/** 6️⃣ Remove Invitee from Event */
+export const removeInviteeFromEvent = async (eventId, userId) => {
+  console.log(`📡 Removing invitee ${userId} from event ${eventId}...`);
+  try {
+    const res = await axiosInstance.delete(`/events/${eventId}/invitees/${userId}`);
+    console.log("✅ Invitee removed:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Remove invitee failed:", err);
+    throw err;
+  }
+};
+
 export const getAllUsers = async () => {
   const res = await axiosInstance.get("/user/getAllUsers",{  withCredentials: true });
   return res.data;

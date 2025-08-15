@@ -12,11 +12,11 @@ const router = express.Router();
 // Get all media for a specific event
 router.get("/:eventId", verifyJWT, getMediaByEvent);
 
-// Upload media for a specific event
+// ✅ Upload both photo & video for a specific event
 router.post(
   "/upload/:eventId",
   verifyJWT,
-  upload.array("files", 10), // allow up to 10 files
+  upload.array("files", 10), // up to 10 files, any allowed type
   uploadMedia
 );
 

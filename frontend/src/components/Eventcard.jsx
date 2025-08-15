@@ -1,73 +1,75 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import myimage from "../assets/chn.svg"; 
+import fallbackImage from "../assets/chn.svg";
+
 export default function EventCard({ event }) {
   const navigate = useNavigate();
 
-   const handleClick = () => {
-    // Navigate to the media page for this event
+  const handleClickMedia = () => {
     navigate(`/events/${event._id}/media`);
   };
-  const handleClickchat = () => {
-    // Navigate to the chat page for this event
-     navigate(`/events/${event._id}/chat`);
+
+  const handleClickChat = () => {
+    navigate(`/events/${event._id}/chat`);
   };
 
   return (
-    <div className="card bg-base-100 w-96 shadow-sm">
-      {/* Image */}
-      <figure>
+    <div className="max-w-sm w-full bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col">
+      {/* Event Cover Image */}
+      <div className="relative w-full h-36 sm:h-48">
         <img
-          src={
-            // myimage
-            "https://images.pexels.com/photos/33322570/pexels-photo-33322570.jpeg" 
-            // // fallback image
-          }
+          src={event.coverImage || fallbackImage}
           alt={event.name}
-          className="h-48 w-full object-cover"
+          className="h-full w-full object-cover"
         />
-      </figure>
+        {event.isPublic === false && (
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow">
+            Private
+          </span>
+        )}
+      </div>
 
-      {/* Body */}
-      <div className="card-body">
-        <h2 className="card-title">{event.name}</h2>
-        <p className="text-sm text-gray-600">{event.description}</p>
+      {/* Card Body */}
+      <div className="p-4 sm:p-5 flex flex-col gap-3 flex-1">
+        {/* Title */}
+        <h2 className="text-base sm:text-lg font-semibold text-gray-800 line-clamp-1">
+          {event.name}
+        </h2>
 
-        {/* Extra info */}
-        <div className="text-sm text-gray-500 mt-3 space-y-1">
+        {/* Description */}
+        <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
+
+        {/* Extra Info */}
+        <div className="text-xs text-gray-500 space-y-1">
           <p>
-            <span className="font-semibold">Created By:</span>{" "}
+            <span className="font-medium">Created By:</span>{" "}
             {event.ownerId?.name || "Unknown"}
           </p>
           <p>
-            <span className="font-semibold">Published On:</span>{" "}
+            <span className="font-medium">Published On:</span>{" "}
             {event.createdAt
               ? new Date(event.createdAt).toLocaleDateString()
               : "N/A"}
           </p>
         </div>
 
-        {/* Action */}
-        <div className="card-actions justify-end mt-4">
-          <button onClick={handleClick} className="btn btn-primary">
-            media
+        {/* Actions */}
+        <div className="flex flex-col xs:flex-row sm:flex-row gap-2 mt-3">
+          <button
+            onClick={handleClickMedia}
+            className="w-full sm:flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors duration-200"
+          >
+            📷 Media
           </button>
-        </div>
-
-          <div className="card-actions justify-start mt-4">
-          <button onClick={handleClickchat} className="btn btn-primary">
-            chat
+          <button
+            onClick={handleClickChat}
+            className="w-full sm:flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors duration-200"
+          >
+            💬 Chat
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
 

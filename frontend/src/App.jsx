@@ -7,7 +7,7 @@ import LoginPage from "./pages/Loginpage.jsx";
 import HomePage from "./pages/Homepage.jsx";
 import EventRoom from "./pages/EventRoom.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
-
+import CallPage from "./pages/CallPage.jsx";
 
 
 import Sidebar from "./components/Sidebar.jsx";
@@ -92,14 +92,21 @@ const App = () => {
         <Route
           path="/events/:eventId/media"
           element={
-         <EventGallery />
+             <Layout showSidebar={false}>
+                <EventGallery />
+              </Layout>
+         
 
           }/>
         <Route
           path="/events/:eventId/chat"
           element={
-            <ChatPage />
+               <Layout >
+                <ChatPage />
+              </Layout>
           }/>
+
+             <Route path="/call/:eventId" element={<CallPage />} />
             
                 
 

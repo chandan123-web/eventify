@@ -1,30 +1,44 @@
 import { Router } from "express";
 import { verifyJWT } from "../middleware/auth.middleware.js";
+import { upload } from "../middleware/multer.middleware.js"; // ✅ for file uploads
 
 import {
-     createEvent,
-    getEvent,
-    updateEvent,
-    deleteEvent,
-    getAllEvents,
-    removeInviteeFromEvent
-
-
+  createEvent,
+  getEvent,
+  updateEvent,
+  deleteEvent,
+  getAllEvents,
+  removeInviteeFromEvent,
 } from "../controller/event.controller.js";
 
-
 const router = Router();
-// router.get("/ getAllEvents", getAllEvents);
-router.get("/getAllEvents",verifyJWT, getAllEvents);
-// router.use(verifyJWT);
 
+// Get all events
+router.get("/getAllEvents", verifyJWT, getAllEvents);
 
+// Create event (with optional cover image upload)
+router.post(
+  "/createEvent",
+  verifyJWT,
+  upload.single("coverImage"), // accepts a single file for coverImage
+  createEvent
+);
 
-router.post("/createEvent",verifyJWT, createEvent);
-router.get("/:id",verifyJWT, getEvent);
-router.patch("/:id", verifyJWT,updateEvent);
-router.delete("/:id",verifyJWT, deleteEvent);
-// router.get("/getAllEvents", getAllEvents);
+// Get single event
+router.get("/:id", verifyJWT, getEvent);
+
+// Update event (with optional new cover image upload)
+router.patch(
+  "/:id",
+  verifyJWT,
+  upload.single("coverImage"),
+  updateEvent
+);
+
+// Delete event
+router.delete("/:id", verifyJWT, deleteEvent);
+
+// Remove invitee
 router.delete("/remove-invitee/:eventId/:userId", removeInviteeFromEvent);
 
-export default router ;
+export default router;

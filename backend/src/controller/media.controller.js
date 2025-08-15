@@ -1,4 +1,4 @@
-import Media from "../models/Media.model.js";
+import Media from "../models/media.model.js";
 import Event from "../models/event.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import fs from "fs";
@@ -8,7 +8,7 @@ export const getMediaByEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    // check if event exists
+    // Check if event exists
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ message: "Event not found." });
@@ -23,18 +23,18 @@ export const getMediaByEvent = async (req, res) => {
   }
 };
 
-// ✅ Upload media for an event
+// ✅ Upload media for an event (photos & videos)
 export const uploadMedia = async (req, res) => {
   try {
     const files = req.files;
-    const eventId =  req.params.eventId; // allow both body & params
-    const tags = req.body.tags;
+    const { eventId } = req.params;
+    const tags = req.body.tags ? req.body.tags.split(",").map((t) => t.trim()) : [];
 
     if (!files || files.length === 0) {
       return res.status(400).json({ success: false, message: "No files uploaded." });
     }
 
-    // Check if event exists
+    // ✅ Check if event exists
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ success: false, message: "Event not found." });
@@ -43,15 +43,15 @@ export const uploadMedia = async (req, res) => {
     const uploadedMedia = await Promise.all(
       files.map(async (file) => {
         const localFilePath = file.path;
-
         try {
-          const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
+          const cloudinaryResponse = await uploadOnCloudinary(localFilePath, "auto"); // auto handles images/videos
 
+          // Remove local temp file
           if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath); // remove temp file
+            fs.unlinkSync(localFilePath);
           }
 
-          if (!cloudinaryResponse || !cloudinaryResponse.secure_url) {
+          if (!cloudinaryResponse?.secure_url) {
             throw new Error("Cloudinary upload failed");
           }
 
@@ -59,72 +59,33 @@ export const uploadMedia = async (req, res) => {
             eventId,
             uploaderId: req.user._id,
             file: cloudinaryResponse.secure_url,
-            tags: tags?.split(",").map((t) => t.trim()) || [],
+            fileType: cloudinaryResponse.resource_type, // "image" or "video"
+            tags,
             uploadDate: new Date(),
             isApproved: false,
           });
         } catch (err) {
-          console.error(`Error processing file ${file.originalname}:`, err);
-          return null; // skip failed file
+          console.error(`❌ Error uploading ${file.originalname}:`, err.message);
+          return { error: file.originalname };
         }
       })
     );
 
-    const successfulUploads = uploadedMedia.filter(Boolean);
+    const successes = uploadedMedia.filter((m) => !m.error);
+    const failures = uploadedMedia.filter((m) => m.error);
 
     res.status(201).json({
       success: true,
-      message: `${successfulUploads.length} of ${files.length} files uploaded successfully.`,
-      data: successfulUploads,
+      message: `${successes.length} file(s) uploaded, ${failures.length} failed.`,
+      uploaded: successes,
+      failed: failures.map((f) => f.error),
     });
+
   } catch (error) {
-    console.error("Error uploading media:", error);
+    console.error("🔥 Upload error:", error);
     res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
-
-// export const uploadMedia = async (req, res) => {
-//   try {
-//     const { eventId, tags } = req.body;
-
-//     // 1. Check if eventId is provided
-//     if (!eventId) {
-//       return res.status(400).json({ message: "Event ID is required" });
-//     }
-
-//     // 2. Check if event exists
-//     const event = await Event.findById(eventId);
-//     if (!event) {
-//       return res.status(404).json({ message: "Event not found" });
-//     }
-
-//     // 3. Check if files were uploaded
-//     if (!req.files || req.files.length === 0) {
-//       return res.status(400).json({ message: "No files uploaded" });
-//     }
-
-//     // 4. Save media to DB
-//     const mediaDocs = req.files.map((file) => ({
-//       event: eventId,
-//       fileName: file.originalname,
-//       filePath: file.path,
-//       fileType: file.mimetype,
-//       tags: tags ? tags.split(",") : []
-//     }));
-
-//     const savedMedia = await Media.insertMany(mediaDocs);
-
-//     // 5. Send success response
-//     return res.status(201).json({
-//       message: "Media uploaded successfully",
-//       media: savedMedia
-//     });
-
-//   } catch (error) {
-//     console.error("Upload media error:", error);
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// };
 
 // ✅ Delete media
 export const deleteMedia = async (req, res) => {
@@ -136,7 +97,7 @@ export const deleteMedia = async (req, res) => {
       return res.status(404).json({ message: "Media not found." });
     }
 
-    // Allow deletion only by uploader or admin
+    // Only uploader or admin can delete
     if (media.uploaderId.toString() !== req.user._id.toString() && req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized to delete this file." });
     }

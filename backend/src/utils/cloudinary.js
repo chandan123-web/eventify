@@ -1,12 +1,7 @@
-
-import {v2 as cloudinary} from "cloudinary"
-import fs from "fs"
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config();
-
-console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
-console.log("API Key:", process.env.CLOUDINARY_API_KEY);
-console.log("API Secret:", process.env.CLOUDINARY_API_SECRET);
 
 cloudinary.config({ 
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -20,30 +15,29 @@ const uploadOnCloudinary = async (localFilePath) => {
             console.error("No file path provided for upload.");
             return null;
         }
-        //upload the file on cloudinary
+
         const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: "auto"
-        })
-        // file has been uploaded successfull
-        //console.log("file is uploaded on cloudinary ", response.url);
-        console.log("File uploaded successfully:", response.secure_url);
-         if (fs.existsSync(localFilePath)) {
-             fs.unlinkSync(localFilePath);
-             console.log(" Local file deleted:", localFilePath);
-           }
+            resource_type: "auto", // Detect image or video
+            folder: "uploads"      // Optional: store in a specific folder
+        });
+
+        console.log("✅ Uploaded to Cloudinary:", response.secure_url);
+
+        if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
+            console.log("🗑️ Local file deleted:", localFilePath);
+        }
+
         return response;
 
     } catch (error) {
-         if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-      console.log("🗑️ Local file deleted after failure:", localFilePath);
-    }// remove the locally saved temporary file as the upload operation got failed
-
-       console.error("🚫 Cloudinary Upload Error:", error);
+        if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
+            console.log("🗑️ Local file deleted after failure:", localFilePath);
+        }
+        console.error("🚫 Cloudinary Upload Error:", error.message);
         return null;
     }
-}
+};
 
-
-
-export {uploadOnCloudinary}
+export { uploadOnCloudinary };
